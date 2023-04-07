@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo "msg: $(bashio::config 'message')"" 
+echo "msg: $(bashio::config 'message')""
