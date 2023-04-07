@@ -1,11 +1,12 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: "Hello world"
-version: "1.0.0"
+version: "1.0.1"
 slug: hello-world
 description: >-
-  "Just a test"
+  Just a test
 arch:
   - amd64
+init: false
 image: ghcr.io/ikkentim/ha-{arch}-hello-world
 options:
   message: "Hello world..."
