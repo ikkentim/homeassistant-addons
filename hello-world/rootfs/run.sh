@@ -1,3 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bashio
 
-echo "msg: $(bashio::config 'message')""
+bashio::log.info "read"
+
+MESSAGE=$(bashio::config 'message')
+
+bashio::log.info "read2"
+
+bashio::log.info "msg ${MESSAGE}"
