@@ -1,0 +1,21 @@
+# https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
+name: "Digital Ocean DynDNS"
+version: "1.0.0"
+slug: do-dyndns
+url: https://github.com/ikkentim/homeassistant-addons
+description: >-
+  Updates an A DNS record in Digital Ocean with the external IP of your network.
+arch:
+  - amd64
+init: false
+image: ghcr.io/ikkentim/ha-{arch}-do-dyndns
+options:
+  auth_token: "<your-auth-token-here>"
+  domain: "example.com"
+  name: "home"
+  ip_service: "http://ip.ikt.im"
+schema:
+  auth_token: "str"
+  domain: "str"
+  name: "str"
+  ip_service: "str"
