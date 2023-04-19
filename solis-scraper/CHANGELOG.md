@@ -5,3 +5,7 @@
 ## 1.0.1
 
 - Added logging messages for MQTT connection state changes
+
+## 1.0.2
+
+- Updated documentation
