@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: "Digital Ocean DynDNS"
-version: "1.0.1"
+version: "1.0.2"
 slug: do-dyndns
 url: https://github.com/ikkentim/homeassistant-addons
 description: >-
