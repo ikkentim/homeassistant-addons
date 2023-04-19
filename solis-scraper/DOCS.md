@@ -4,7 +4,7 @@ A couple of options are available:
 
 ### Scraper
 
-- **`Host`**: (required) URI of host to be scraped. e.g. http://SOME_IP_ADDRESS/
+- **`Host`**: URI of host to be scraped. e.g. http://SOME_IP_ADDRESS/
 - **`Username`**: Username for Solis device. Default: `admin`
 - **`Password`**: Password of Solis device. Default: `admin`
 
