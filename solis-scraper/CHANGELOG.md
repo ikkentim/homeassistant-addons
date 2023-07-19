@@ -9,3 +9,7 @@
 ## 1.0.2
 
 - Updated documentation
+
+## 1.1.0
+
+- Added support for newer Solis devices (Solis S3-WIFI-ST)

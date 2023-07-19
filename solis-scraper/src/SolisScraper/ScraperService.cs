@@ -13,16 +13,18 @@ namespace SolisScraper
     {
         private readonly MqttConfiguration _configuration;
         private readonly MqttTransmitter _mqttClient;
+        private readonly ScraperConfiguration _scraperOptions;
         private readonly SolarClient _solarClient;
         private SolarScrapeResult _previousResult;
         private State _state;
         private readonly ILogger _logger;
 
-        public ScraperService(SolarClient solarClient, MqttTransmitter mqttClient, IOptions<MqttConfiguration> options, ILogger<ScraperService> logger)
+        public ScraperService(SolarClient solarClient, MqttTransmitter mqttClient, IOptions<MqttConfiguration> options, IOptions<ScraperConfiguration> scraperOptions, ILogger<ScraperService> logger)
         {
             _logger = logger;
             _configuration = options.Value;
             _mqttClient = mqttClient;
+            _scraperOptions = scraperOptions.Value;
             _solarClient = solarClient;
         }
 
@@ -107,6 +109,13 @@ namespace SolisScraper
             var failures = 0;
             var sleepResultSent = false;
             var lastState = DateTime.UtcNow;
+            var format = _scraperOptions.Format;
+
+            void SwitchFormat()
+            {
+                format = format == 1 ? 2 : 1;
+                _logger.LogInformation($"Switching to format {format}");
+            }
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -116,7 +125,7 @@ namespace SolisScraper
                     SolarScrapeResult result = null;
                     try
                     {
-                        result = await _solarClient.Scrape(stoppingToken);
+                        result = await _solarClient.Scrape(format, stoppingToken);
                         failures = 0;
                     }
                     catch (HttpRequestException)
@@ -127,6 +136,8 @@ namespace SolisScraper
                     catch (ResponseParseException e)
                     {
                         SetState(State.SolarBadReply, e.Message);
+                        
+                        SwitchFormat();
 
                         if (failures++ < _configuration.FailureCap)
                         {

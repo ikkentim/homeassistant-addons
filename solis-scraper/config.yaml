@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: "Solis Scraper"
-version: "1.0.2"
+version: "1.1.0"
 slug: solis-scraper
 url: https://github.com/ikkentim/homeassistant-addons
 description: >-
@@ -12,26 +12,28 @@ image: ghcr.io/ikkentim/ha-{arch}-solis-scraper
 options:
   Scraper:
     Host: "http://IP-ADDRESS-HERE"
-    Username: "admin"
-    Password: "admin"
+    Username: admin
+    Password: admin
+    Format: 1
   Mqtt:
-    Host: "core-mosquitto"
+    Host: core-mosquitto
     Username: ""
     Password: ""
-    ClientId: "solis_scraper"
-    DiscoveryPrefix: "homeassistant"
-    NodeId: "solis"
-    UniqueIdPrefix: "solis_scraper"
+    ClientId: solis_scraper
+    DiscoveryPrefix: homeassistant
+    NodeId: solis
+    UniqueIdPrefix: solis_scraper
 schema:
   Scraper:
-    Host: "str"
-    Username: "str"
-    Password: "str"
+    Host: str
+    Username: str
+    Password: str
+    Format: "int(1,2)"
   Mqtt:
-    Host: "str"
-    Username: "str"
-    Password: "str"
-    ClientId: "str"
-    DiscoveryPrefix: "str"
-    NodeId: "str"
-    UniqueIdPrefix: "str"
+    Host: str
+    Username: str
+    Password: str
+    ClientId: str
+    DiscoveryPrefix: str
+    NodeId: str
+    UniqueIdPrefix: str

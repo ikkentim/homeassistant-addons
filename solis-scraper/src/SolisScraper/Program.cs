@@ -37,6 +37,7 @@ namespace SolisScraper
                         .Validate(v => !string.IsNullOrEmpty(v.Host), Message("Scraper", "Host"))
                         .Validate(v => !string.IsNullOrEmpty(v.Username), Message("Scraper", "Username"))
                         .Validate(v => !string.IsNullOrEmpty(v.Password), Message("Scraper", "Password"))
+                        .Validate(v => v.Format is >= 1 and <= 2, Message("Scraper", "Format"))
                         ;
 
                     services.AddOptions<MqttConfiguration>()
