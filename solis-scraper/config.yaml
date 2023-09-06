@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: "Solis Scraper"
-version: "1.1.0"
+version: "1.2.0"
 slug: solis-scraper
 url: https://github.com/ikkentim/homeassistant-addons
 description: >-
@@ -29,6 +29,7 @@ schema:
     Username: str
     Password: str
     Format: "int(1,2)"
+    ResetAfterMidnightTimeZone: "str?"
   Mqtt:
     Host: str
     Username: str

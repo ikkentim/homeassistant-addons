@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -168,8 +169,16 @@ namespace SolisScraper
                         {
                             result = _previousResult;
                             result.WattNow = 0;
-
-                            // TODO: Reset after midnight? result.KiloWattToday
+                            
+                            // Reset the today stat after midnight (between 0:00 and 5:00)
+                            if (!string.IsNullOrWhiteSpace(_scraperOptions.ResetAfterMidnightTimeZone))
+                            {
+                                var localTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _scraperOptions.ResetAfterMidnightTimeZone);
+                                if (localTime.Hour is >= 0 and < 5)
+                                {
+                                    result.KiloWattToday = 0;
+                                }
+                            }
 
                             sleepResultSent = true;
                         }

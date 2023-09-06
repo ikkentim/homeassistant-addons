@@ -13,3 +13,7 @@
 ## 1.1.0
 
 - Added support for newer Solis devices (Solis S3-WIFI-ST)
+
+## 1.2.0
+
+- Added experimental ResetAfterMidnightTimeZone option
