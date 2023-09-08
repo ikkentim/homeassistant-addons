@@ -17,3 +17,7 @@
 ## 1.2.0
 
 - Added experimental ResetAfterMidnightTimeZone option
+
+## 1.2.1
+
+- Possible fix for values dropping to 0 intermittently

@@ -162,6 +162,12 @@ namespace SolisScraper
                         }
                     }
 
+                    if(result != null && result.KiloWattToday == 0 && result.WattNow == 0 && result.KiloWattTotal == 0)
+                    {
+                        // Invalid state; skip
+                        continue;
+                    }
+
                     // When no new result could be scraped, assume the remote is sleeping due to no generation. Assume the previous result with a current watt value of 0.
                     if (result == null)
                     {
