@@ -26,4 +26,8 @@
 
 - **!! Breaking change**: Configuration format has been changed
 - Update to .NET 8
-- Added support for polling multiple Solis instances using one addon installation 
+- Added support for polling multiple Solis instances using one addon installation
+
+## 2.0.1
+
+- Attempt to fix config

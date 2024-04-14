@@ -39,7 +39,7 @@ namespace SolisScraper
                 .ConfigureServices((ctx, services) =>
                 {
                     services.AddOptions<ScraperConfiguration>()
-                        .Bind(ctx.Configuration.GetSection("Scraper"))
+                        .Bind(new HackForArrayInRootConfiguration(ctx.Configuration.GetSection("Instances")))
                         .Validate(v =>
                         {
                             foreach (var instance in v.Instances)
