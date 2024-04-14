@@ -15,7 +15,7 @@ options:
     - Host: "http://IP-ADDRESS-HERE"
       Username: admin
       Password: admin
-      Name: Solis Energy
+      Name: "Solis Energy"
       NodeId: solis
       UniqueId: solis_scraper
       Format: 1
