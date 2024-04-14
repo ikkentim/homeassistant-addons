@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SolisScraper.Models;
 
@@ -23,37 +24,60 @@ namespace SolisScraper
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureLogging(cfg =>
+                {
+                    cfg.AddSimpleConsole(con =>
+                    {
+                        con.SingleLine = true;
+                        con.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+                    });
+                })
 #if DEBUG
                 .UseEnvironment("Debug")
 #endif
                 .ConfigureHostConfiguration(configHost => configHost.AddEnvironmentVariables())
                 .ConfigureServices((ctx, services) =>
                 {
-                    static string Message(string where, string what) =>
-                        $"Missing {where.ToLowerInvariant()} {what.ToLowerInvariant()}. Configure using {where}.{what} in appsettings.json or using the {where}__{what} environment variable.";
-
                     services.AddOptions<ScraperConfiguration>()
                         .Bind(ctx.Configuration.GetSection("Scraper"))
-                        .Validate(v => !string.IsNullOrEmpty(v.Host), Message("Scraper", "Host"))
-                        .Validate(v => !string.IsNullOrEmpty(v.Username), Message("Scraper", "Username"))
-                        .Validate(v => !string.IsNullOrEmpty(v.Password), Message("Scraper", "Password"))
-                        .Validate(v => v.Format is >= 1 and <= 2, Message("Scraper", "Format"))
-                        ;
+                        .Validate(v =>
+                        {
+                            foreach (var instance in v.Instances)
+                            {
+                                if (
+                                    string.IsNullOrEmpty(instance.Host) ||
+                                    string.IsNullOrEmpty(instance.Username) ||
+                                    string.IsNullOrEmpty(instance.Password) ||
+                                    instance.Format < 1 || instance.Format > 2 ||
+                                    string.IsNullOrEmpty(instance.Name) || 
+                                    string.IsNullOrEmpty(instance.NodeId) || 
+                                    string.IsNullOrEmpty(instance.UniqueId)
+                                    )
+                                {
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        }, "Scraper instances configuration is invalid.");
 
                     services.AddOptions<MqttConfiguration>()
                         .Bind(ctx.Configuration.GetSection("Mqtt"))
-                        .Validate(v => !string.IsNullOrEmpty(v.Host), Message("Mqtt", "Host"))
-                        .Validate(v => !string.IsNullOrEmpty(v.Username), Message("Mqtt", "Username"))
-                        .Validate(v => !string.IsNullOrEmpty(v.Password), Message("Mqtt", "Password"))
-                        .Validate(v => !string.IsNullOrEmpty(v.ClientId), Message("Mqtt", "ClientId"))
-                        .Validate(v => !string.IsNullOrEmpty(v.DiscoveryPrefix), Message("Mqtt", "DiscoveryPrefix"))
-                        .Validate(v => !string.IsNullOrEmpty(v.NodeId), Message("Mqtt", "NodeId"))
-                        .Validate(v => !string.IsNullOrEmpty(v.UniqueIdPrefix), Message("Mqtt", "UniqueIdPrefix"))
+                        .Validate(v => !string.IsNullOrEmpty(v.Host), Message("Host"))
+                        .Validate(v => !string.IsNullOrEmpty(v.Username), Message("Username"))
+                        .Validate(v => !string.IsNullOrEmpty(v.Password), Message("Password"))
+                        .Validate(v => !string.IsNullOrEmpty(v.ClientId), Message("ClientId"))
+                        .Validate(v => !string.IsNullOrEmpty(v.DiscoveryPrefix), Message("DiscoveryPrefix"))
                         ;
                     
-                    services.AddTransient<SolarClient>();
                     services.AddTransient<MqttTransmitter>();
-                    services.AddHostedService<ScraperService>();
+                    services.AddHostedService<ScraperBackgroundService>();
+                    
+                    static string Message(string what)
+                    {
+                        return $"Missing MQTT {what.ToLowerInvariant()}. Configure using Mqtt.{what} in appsettings.json or using the Mqtt__{what} environment variable.";
+                    }
+
                 });
 
 

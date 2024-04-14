@@ -1,6 +1,6 @@
 ARG BUILD_FROM
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
@@ -37,7 +37,7 @@ ENV \
 RUN \
     wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && \
     chmod +x ./dotnet-install.sh && \
-    ./dotnet-install.sh --runtime aspnetcore --channel 7.0 --install-dir /usr/share/dotnet && \
+    ./dotnet-install.sh --runtime aspnetcore --channel 8.0 --install-dir /usr/share/dotnet && \
     ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
 

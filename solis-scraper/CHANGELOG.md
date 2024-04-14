@@ -21,3 +21,9 @@
 ## 1.2.1
 
 - Possible fix for values dropping to 0 intermittently
+
+## 2.0.0
+
+- **!! Breaking change**: Configuration format has been changed
+- Update to .NET 8
+- Added support for polling multiple Solis instances using one addon installation 

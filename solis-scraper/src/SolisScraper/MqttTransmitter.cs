@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Buffers;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,7 +21,7 @@ namespace SolisScraper
     {
         private readonly IManagedMqttClient _client;
         private readonly ManagedMqttClientOptions _options;
-        private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
+        private static readonly RecyclableMemoryStreamManager _memoryStreamManager = new();
         private readonly MqttConfiguration _configuration;
         private readonly JsonSerializerOptions _serializerOptions = new()
         {
@@ -27,6 +29,7 @@ namespace SolisScraper
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly ILogger _logger;
 
         public MqttTransmitter(IOptions<MqttConfiguration> options, ILogger<MqttTransmitter> logger)
@@ -42,6 +45,13 @@ namespace SolisScraper
                 .Build();
             
             _logger = logger;
+
+            
+            if (_configuration.Dummy)
+            {
+                return;
+            }
+
             _client = new MqttFactory().CreateManagedMqttClient();
 
             _client.ConnectedAsync += args =>
@@ -61,41 +71,61 @@ namespace SolisScraper
             };
         }
 
-        public Task Start() => _client.StartAsync(_options);
-
-        public Task Stop() => _client.StopAsync();
-
-        public async Task Send(string topic, object obj, bool retain = true)
+        public Task Start()
         {
-            // Debug logging
-            if (_configuration.DebugLogging)
+            return _configuration.Dummy ? Task.CompletedTask : _client.StartAsync(_options);
+        }
+
+        public Task Stop()
+        {
+            return _configuration.Dummy ? Task.CompletedTask : _client.StopAsync();
+        }
+
+        public async Task Send(string topic, object obj, bool retain = true, CancellationToken cancellationToken = default)
+        {
+            try
             {
-                _logger.LogDebug($"Writing to topic: {topic} (retain = {retain}):");
-                _logger.LogDebug(JsonSerializer.Serialize(obj, _serializerOptions));
+                await _semaphore.WaitAsync(cancellationToken);
+
+                // Debug logging
+                if (_configuration.DebugLogging || _configuration.Dummy)
+                {
+                    _logger.LogDebug($"Writing to topic: {topic} (retain = {retain}):");
+                    _logger.LogDebug(JsonSerializer.Serialize(obj, _serializerOptions));
+                }
+
+                if (_configuration.Dummy)
+                {
+                    return;
+                }
+
+                // Serialize
+                await using var stream = _memoryStreamManager.GetStream();
+                await using var writer = new Utf8JsonWriter((IBufferWriter<byte>)stream,
+                    new JsonWriterOptions
+                    {
+                        Indented = false
+                    });
+
+                JsonSerializer.Serialize(writer, obj, _serializerOptions);
+
+                var position = stream.Position;
+                stream.Seek(0, SeekOrigin.Begin);
+
+                // Construct message
+                var message = new MqttApplicationMessageBuilder().WithTopic(topic)
+                    .WithPayload(stream, position)
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .WithRetainFlag(retain)
+                    .Build();
+
+                // Publish
+                await _client.EnqueueAsync(message);
             }
-
-            // Serialize
-            await using var stream = MemoryStreamManager.GetStream();
-            await using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions
+            finally
             {
-                Indented = false
-            });
-            
-            JsonSerializer.Serialize(writer, obj, _serializerOptions);
-
-            var position = stream.Position;
-            stream.Seek(0, SeekOrigin.Begin);
-
-            // Construct message
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic(topic)
-                .WithPayload(stream, position)
-                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
-                .WithRetainFlag(retain)
-                .Build();
-            
-            // Publish
-            await _client.EnqueueAsync(message);
+                _semaphore.Release();
+            }
         }
     }
 }

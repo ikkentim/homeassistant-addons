@@ -8,28 +8,25 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 using SolisScraper.Models;
 
 namespace SolisScraper
 {
-    public class SolarClient
+    public partial class SolarClient
     {
         private readonly HttpClient _httpClient;
         private readonly Random _random = new();
-        private static readonly Regex VarRegex = new("var ([a-zA-Z_]+) = \"(.*)\";");
+        private static readonly Regex _varRegex = VarRegex();
 
-        public SolarClient(IOptions<ScraperConfiguration> options)
+        public SolarClient(InstanceConfiguration options)
         {
-            var scraperConfiguration = options.Value;
-
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri(scraperConfiguration.Host),
-                Timeout = scraperConfiguration.Timeout,
+                BaseAddress = new Uri(options.Host),
+                Timeout = options.Timeout,
             };
 
-            var authString = $"{scraperConfiguration.Username}:{scraperConfiguration.Password}";
+            var authString = $"{options.Username}:{options.Password}";
             var authBytes = Encoding.ASCII.GetBytes(authString);
             var authToken = Convert.ToBase64String(authBytes);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
@@ -43,7 +40,7 @@ namespace SolisScraper
 
                 var body = await response.Content.ReadAsStringAsync(token);
 
-                var matches = VarRegex.Matches(body);
+                var matches = _varRegex.Matches(body);
 
                 var dict = matches.ToDictionary(m => m.Groups[1].Value, m => m.Groups[2].Value);
 
@@ -79,9 +76,7 @@ namespace SolisScraper
             value = value.Trim();
 
             if (value.Length == 0)
-            {
                 return 0;
-            }
 
             if (!decimal.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var parsed))
                 throw new ResponseParseException($"Could not parse result '{value}' for key '{key}'.");
@@ -97,10 +92,8 @@ namespace SolisScraper
             var value = array[index].Trim();
 
             if (value == "d" || value.Length == 0)
-            {
                 // workaround for error in solis
                 return 0;
-            }
 
 
 
@@ -109,5 +102,8 @@ namespace SolisScraper
 
             return parsed;
         }
+
+        [GeneratedRegex("var ([a-zA-Z_]+) = \"(.*)\";")]
+        private static partial Regex VarRegex();
     }
 }

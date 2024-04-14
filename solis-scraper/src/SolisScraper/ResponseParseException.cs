@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace SolisScraper
 {
@@ -15,12 +14,6 @@ namespace SolisScraper
         }
 
         public ResponseParseException(string message, Exception inner) : base(message, inner)
-        {
-        }
-
-        protected ResponseParseException(
-            SerializationInfo info,
-            StreamingContext context) : base(info, context)
         {
         }
     }
