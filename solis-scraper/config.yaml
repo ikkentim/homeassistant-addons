@@ -42,3 +42,4 @@ schema:
     Password: str
     ClientId: str
     DiscoveryPrefix: str
+
